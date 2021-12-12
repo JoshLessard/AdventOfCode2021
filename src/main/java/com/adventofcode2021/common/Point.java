@@ -105,4 +105,12 @@ public class Point {
     public int hashCode() {
         return Objects.hash(x, y);
     }
+
+    public Point translateX( int deltaX ) {
+        return new Point( x + deltaX, y );
+    }
+
+    public Point translateY( int deltaY ) {
+        return new Point( x, y + deltaY );
+    }
 }
