@@ -1,8 +1,7 @@
 package com.adventofcode2021.dec22;
 
-import static java.util.Collections.emptySet;
-
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -52,21 +51,27 @@ class ReactorCoreCuboid {
     }
 
     Set<ReactorCoreCuboid> withOverlapRemoved( ReactorCoreCuboid other ) {
-        if ( other.contains( this ) ) {
-            return emptySet();
-        } else if ( this.contains( other ) ) {
-            // Other cuboid is strictly a subcuboid of this one (if it were identical or containing, the first case would have caught it)
-            return Set.of(
-                new ReactorCoreCuboid( cubeState, minCoordinate, new Point3d( other.minCoordinate.x() - 1, maxCoordinate.y(), maxCoordinate.z() ) ),
-                new ReactorCoreCuboid( cubeState, new Point3d( other.maxCoordinate.x() + 1, minCoordinate.y(), minCoordinate.z() ), maxCoordinate ),
-                new ReactorCoreCuboid( cubeState, new Point3d( other.minCoordinate.x(), minCoordinate.y(), minCoordinate.z() ), new Point3d( other.maxCoordinate.x(), maxCoordinate.y(), other.minCoordinate.z() - 1 ) ),
-                new ReactorCoreCuboid( cubeState, new Point3d( other.minCoordinate.x(), minCoordinate.y(), other.maxCoordinate.z() + 1 ), new Point3d( other.maxCoordinate.x(), maxCoordinate.y(), maxCoordinate.z() ) ),
-                new ReactorCoreCuboid( cubeState, new Point3d( other.minCoordinate.x(), minCoordinate.y(), other.minCoordinate.z() ), new Point3d( other.maxCoordinate.x(), other.minCoordinate.y() - 1, other.maxCoordinate.z() ) ),
-                new ReactorCoreCuboid( cubeState, new Point3d( other.minCoordinate.x(), other.maxCoordinate.y() + 1, other.minCoordinate.z() ), new Point3d( other.maxCoordinate.x(), maxCoordinate.y(), other.maxCoordinate.z() ) )
-            );
-        } else {
-            throw new UnsupportedOperationException();
+        Set<ReactorCoreCuboid> remaining = new HashSet<>();
+        if ( other.minCoordinate.x() > minCoordinate.x() ) {
+            remaining.add( new ReactorCoreCuboid( cubeState, minCoordinate, new Point3d( other.minCoordinate.x() - 1, maxCoordinate.y(), maxCoordinate.z() ) ) );
         }
+        if ( other.maxCoordinate.x() < maxCoordinate.x() ) {
+            remaining.add( new ReactorCoreCuboid( cubeState, new Point3d( other.maxCoordinate.x() + 1, minCoordinate.y(), minCoordinate.z() ), maxCoordinate ) );
+        }
+        if ( other.minCoordinate.z() > minCoordinate.z() ) {
+            remaining.add( new ReactorCoreCuboid( cubeState, new Point3d( other.minCoordinate.x(), minCoordinate.y(), minCoordinate.z() ), new Point3d( other.maxCoordinate.x(), maxCoordinate.y(), other.minCoordinate.z() - 1 ) ) );
+        }
+        if ( other.maxCoordinate.z() < maxCoordinate.z() ) {
+            remaining.add( new ReactorCoreCuboid( cubeState, new Point3d( other.minCoordinate.x(), minCoordinate.y(), other.maxCoordinate.z() + 1 ), new Point3d( other.maxCoordinate.x(), maxCoordinate.y(), maxCoordinate.z() ) ) );
+        }
+        if ( other.minCoordinate.y() > minCoordinate.y() ) {
+            remaining.add( new ReactorCoreCuboid( cubeState, new Point3d( other.minCoordinate.x(), minCoordinate.y(), other.minCoordinate.z() ), new Point3d( other.maxCoordinate.x(), other.minCoordinate.y() - 1, other.maxCoordinate.z() ) ) );
+        }
+        if ( other.maxCoordinate.y() < maxCoordinate.y() ) {
+            remaining.add( new ReactorCoreCuboid( cubeState, new Point3d( other.minCoordinate.x(), other.maxCoordinate.y() + 1, other.minCoordinate.z() ), new Point3d( other.maxCoordinate.x(), maxCoordinate.y(), other.maxCoordinate.z() ) ) );
+        }
+
+        return remaining;
     }
 
     @Override
