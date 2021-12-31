@@ -2,6 +2,8 @@ package com.adventofcode2021.dec22;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import com.adventofcode2021.common.Point3d;
@@ -124,5 +126,40 @@ public class ReactorCoreCuboidTest {
         ReactorCoreCuboid superCuboid = new ReactorCoreCuboid( DUMMY_STATE, new Point3d( 978424, -23499, -6789433 ), new Point3d( 824832444, 392737, 8386 ) );
 
         assertThat( cuboid.contains( superCuboid ) ).isFalse();
+    }
+
+    @Test
+    public void removingOverlapFromContainingCuboidLeavesNothing() {
+        ReactorCoreCuboid cuboid = new ReactorCoreCuboid( DUMMY_STATE, new Point3d( -200, -25, 389 ), new Point3d( 583, -10, 529 ) );
+        ReactorCoreCuboid containingCuboid = new ReactorCoreCuboid( DUMMY_STATE, new Point3d( -201, -26, 388 ), new Point3d( 584, -9, 530 ) );
+
+        assertThat( cuboid.withOverlapRemoved( containingCuboid ) ).isEmpty();
+    }
+
+    @Test
+    public void removingOverlapFromSameCuboidLeavesNothing() {
+        ReactorCoreCuboid cuboid = new ReactorCoreCuboid( DUMMY_STATE, new Point3d( 27, 9834, 9882934 ), new Point3d( 432, 746732, 58306832 ) );
+        ReactorCoreCuboid identicalCuboid = new ReactorCoreCuboid( DUMMY_STATE, new Point3d( 27, 9834, 9882934 ), new Point3d( 432, 746732, 58306832 ) );
+
+        assertThat( cuboid.withOverlapRemoved( identicalCuboid ) ).isEmpty();
+    }
+
+    @Test
+    public void removingOverlapFromStrictSubCuboidLeavesOnlySurroundingSpaceWithSameStateAsOriginalCuboid() {
+        ReactorCoreCuboid cuboid = new ReactorCoreCuboid( ReactorCoreCuboid.State.ON, new Point3d( 0, 0, 0 ), new Point3d( 50, 50, 50 ) );
+        ReactorCoreCuboid subCuboid = new ReactorCoreCuboid( DUMMY_STATE, new Point3d( 1, 1, 1 ), new Point3d( 49, 49, 49 ) );
+
+        Set<ReactorCoreCuboid> expectedRemaining = Set.of(
+            new ReactorCoreCuboid(ReactorCoreCuboid.State.ON, new Point3d( 0, 0, 0 ), new Point3d( 0, 50, 50 ) ),
+            new ReactorCoreCuboid(ReactorCoreCuboid.State.ON, new Point3d( 50, 0, 0 ), new Point3d( 50, 50, 50 ) ),
+            new ReactorCoreCuboid(ReactorCoreCuboid.State.ON, new Point3d( 1, 0, 0 ), new Point3d( 49, 50, 0 ) ),
+            new ReactorCoreCuboid(ReactorCoreCuboid.State.ON, new Point3d( 1, 0, 50 ), new Point3d( 49, 50, 50 ) ),
+            new ReactorCoreCuboid(ReactorCoreCuboid.State.ON, new Point3d( 1, 0, 1 ), new Point3d( 49, 0, 49 ) ),
+            new ReactorCoreCuboid(ReactorCoreCuboid.State.ON, new Point3d( 1, 50, 1 ), new Point3d( 49, 50, 49 ) )
+        );
+        assertThat( cuboid.withOverlapRemoved( subCuboid ) ).isEqualTo( expectedRemaining );
+
+        long totalNumberOfCubes = expectedRemaining.stream().mapToLong( ReactorCoreCuboid::numberOfCubes ).sum() + subCuboid.numberOfCubes();
+        assertThat( totalNumberOfCubes ).isEqualTo( cuboid.numberOfCubes() );
     }
 }
